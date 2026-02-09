@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>加藤先生から逃げろ！</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            overflow: hidden;
+            background: #1a1a2e;
+            font-family: 'Arial', sans-serif;
+            touch-action: none;
+        }
+        
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #fff;
+            background: #2d2d44;
+            max-width: 100%;
+            max-height: 80vh;
+            touch-action: none;
+        }
+        
+        #joystickContainer {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 120px;
+            z-index: 100;
+        }
+        
+        #joystickBase {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        #joystickStick {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            left: 35px;
+            top: 35px;
+            touch-action: none;
+        }
+        
+        #ui {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            z-index: 50;
+        }
+        
+        #gameOverScreen, #startScreen, #clearScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            color: white;
+        }
+        
+        #startScreen h1, #gameOverScreen h1, #clearScreen h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        #startScreen p, #gameOverScreen p, #clearScreen p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            text-align: center;
+            padding: 0 20px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            font-size: 20px;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        
+        .btn:active {
+            background: #c73a52;
+        }
+        
+        #clearScreen h1 {
+            color: #4ecca3;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+    
+    <div id="joystickContainer">
+        <div id="joystickBase"></div>
+        <div id="joystickStick"></div>
+    </div>
+    
+    <div id="ui">
+        <div>タスク: <span id="taskCount">0/5</span></div>
+        <div>時間: <span id="timer">0:00</span></div>
+    </div>
+    
+    <div id="startScreen">
+        <h1>🏃 加藤先生から逃げろ！</h1>
+        <p>数学教師の加藤先生から逃げながら<br>5つのタスクをクリアして脱出しよう！</p>
+        <p>仮想スティックで移動<br>タスク地点で自動クリア</p>
+        <button class="btn" onclick="startGame()">ゲーム開始</button>
+    </div>
+    
+    <div id="gameOverScreen" class="hidden">
+        <h1>😱 捕まった！</h1>
+        <p>加藤先生に捕まってしまいました...</p>
+        <button class="btn" onclick="restartGame()">もう一度挑戦</button>
+    </div>
+    
+    <div id="clearScreen" class="hidden">
+        <h1>🎉 脱出成功！</h1>
+        <p>おめでとう！<br>加藤先生から無事逃げ切りました！</p>
+        <p>タイム: <span id="finalTime"></span></p>
+        <button class="btn" onclick="restartGame()">もう一度プレイ</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // キャンバスサイズ設定
+        const GAME_WIDTH = 800;
+        const GAME_HEIGHT = 600;
+        canvas.width = GAME_WIDTH;
+        canvas.height = GAME_HEIGHT;
+        
+        // ゲーム状態
+        let gameState = 'start';
+        let startTime = 0;
+        let gameTime = 0;
+        
+        // プレイヤー
+        const player = {
+            x: 100,
+            y: 100,
+            size: 20,
+            speed: 3,
+            color: '#4ecca3'
+        };
+        
+        // 加藤先生（鬼）
+        const teacher = {
+            x: 700,
+            y: 500,
+            size: 25,
+            speed: 1.8,
+            color: '#e94560',
+            chaseRange: 300,
+            patrolAngle: 0
+        };
+        
+        // 壁と障害物
+        const walls = [
+            // 外壁
+            {x: 0, y: 0, width: GAME_WIDTH, height: 20},
+            {x: 0, y: 0, width: 20, height: GAME_HEIGHT},
+            {x: GAME_WIDTH - 20, y: 0, width: 20, height: GAME_HEIGHT},
+            {x: 0, y: GAME_HEIGHT - 20, width: GAME_WIDTH, height: 20},
+            
+            // 内部の障害物
+            {x: 200, y: 150, width: 100, height: 100},
+            {x: 500, y: 150, width: 100, height: 100},
+            {x: 200, y: 400, width: 100, height: 100},
+            {x: 500, y: 400, width: 100, height: 100},
+            {x: 350, y: 280, width: 100, height: 40},
+        ];
+        
+        // タスク
+        const tasks = [
+            {x: 100, y: 300, size: 15, completed: false, label: '数式1'},
+            {x: 400, y: 80, size: 15, completed: false, label: '数式2'},
+            {x: 700, y: 200, size: 15, completed: false, label: '数式3'},
+            {x: 650, y: 450, size: 15, completed: false, label: '数式4'},
+            {x: 300, y: 520, size: 15, completed: false, label: '数式5'}
+        ];
+        
+        // 出口
+        const exit = {
+            x: GAME_WIDTH - 60,
+            y: GAME_HEIGHT / 2 - 30,
+            width: 40,
+            height: 60,
+            open: false
+        };
+        
+        // 仮想スティック
+        let joystick = {
+            active: false,
+            startX: 0,
+            startY: 0,
+            currentX: 0,
+            currentY: 0,
+            dx: 0,
+            dy: 0
+        };
+        
+        // 仮想スティックの設定
+        const joystickStick = document.getElementById('joystickStick');
+        const joystickBase = document.getElementById('joystickBase');
+        
+        joystickStick.addEventListener('touchstart', handleJoystickStart, {passive: false});
+        document.addEventListener('touchmove', handleJoystickMove, {passive: false});
+        document.addEventListener('touchend', handleJoystickEnd, {passive: false});
+        
+        function handleJoystickStart(e) {
+            e.preventDefault();
+            joystick.active = true;
+            const rect = joystickBase.getBoundingClientRect();
+            joystick.startX = rect.left + rect.width / 2;
+            joystick.startY = rect.top + rect.height / 2;
+        }
+        
+        function handleJoystickMove(e) {
+            if (!joystick.active) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const rect = joystickBase.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const maxDistance = 35;
+            
+            if (distance > maxDistance) {
+                dx = (dx / distance) * maxDistance;
+                dy = (dy / distance) * maxDistance;
+            }
+            
+            joystickStick.style.left = (35 + dx) + 'px';
+            joystickStick.style.top = (35 + dy) + 'px';
+            
+            joystick.dx = dx / maxDistance;
+            joystick.dy = dy / maxDistance;
+        }
+        
+        function handleJoystickEnd(e) {
+            if (!joystick.active) return;
+            e.preventDefault();
+            
+            joystick.active = false;
+            joystick.dx = 0;
+            joystick.dy = 0;
+            
+            joystickStick.style.left = '35px';
+            joystickStick.style.top = '35px';
+        }
+        
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            gameState = 'playing';
+            startTime = Date.now();
+            resetGame();
+            gameLoop();
+        }
+        
+        function resetGame() {
+            player.x = 100;
+            player.y = 100;
+            teacher.x = 700;
+            teacher.y = 500;
+            tasks.forEach(task => task.completed = false);
+            exit.open = false;
+            startTime = Date.now();
+        }
+        
+        function restartGame() {
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('clearScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+            gameState = 'start';
+        }
+        
+        function checkCollision(obj1, obj2, size1, size2) {
+            return Math.abs(obj1.x - obj2.x) < (size1 + size2) / 2 &&
+                   Math.abs(obj1.y - obj2.y) < (size1 + size2) / 2;
+        }
+        
+        function checkWallCollision(x, y, size) {
+            for (let wall of walls) {
+                if (x - size / 2 < wall.x + wall.width &&
+                    x + size / 2 > wall.x &&
+                    y - size / 2 < wall.y + wall.height &&
+                    y + size / 2 > wall.y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        function updatePlayer() {
+            const newX = player.x + joystick.dx * player.speed;
+            const newY = player.y + joystick.dy * player.speed;
+            
+            if (!checkWallCollision(newX, player.y, player.size)) {
+                player.x = newX;
+            }
+            if (!checkWallCollision(player.x, newY, player.size)) {
+                player.y = newY;
+            }
+            
+            // タスクチェック
+            tasks.forEach(task => {
+                if (!task.completed && checkCollision(player, task, player.size, task.size * 2)) {
+                    task.completed = true;
+                    
+                    // 全タスク完了チェック
+                    if (tasks.every(t => t.completed)) {
+                        exit.open = true;
+                    }
+                }
+            });
+            
+            // 出口チェック
+            if (exit.open && 
+                player.x > exit.x && player.x < exit.x + exit.width &&
+                player.y > exit.y && player.y < exit.y + exit.height) {
+                gameClear();
+            }
+        }
+        
+        function updateTeacher() {
+            const dx = player.x - teacher.x;
+            const dy = player.y - teacher.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // 追跡AI
+            if (distance < teacher.chaseRange) {
+                // プレイヤーを追いかける
+                const angle = Math.atan2(dy, dx);
+                const newX = teacher.x + Math.cos(angle) * teacher.speed;
+                const newY = teacher.y + Math.sin(angle) * teacher.speed;
+                
+                if (!checkWallCollision(newX, teacher.y, teacher.size)) {
+                    teacher.x = newX;
+                }
+                if (!checkWallCollision(teacher.x, newY, teacher.size)) {
+                    teacher.y = newY;
+                }
+            } else {
+                // パトロール
+                teacher.patrolAngle += 0.02;
+                const newX = teacher.x + Math.cos(teacher.patrolAngle) * teacher.speed * 0.5;
+                const newY = teacher.y + Math.sin(teacher.patrolAngle) * teacher.speed * 0.5;
+                
+                if (!checkWallCollision(newX, teacher.y, teacher.size)) {
+                    teacher.x = newX;
+                }
+                if (!checkWallCollision(teacher.x, newY, teacher.size)) {
+                    teacher.y = newY;
+                }
+            }
+            
+            // 捕獲チェック
+            if (checkCollision(player, teacher, player.size, teacher.size)) {
+                gameOver();
+            }
+        }
+        
+        function draw() {
+            // 背景
+            ctx.fillStyle = '#2d2d44';
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            
+            // 壁
+            ctx.fillStyle = '#555';
+            walls.forEach(wall => {
+                ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+            });
+            
+            // タスク
+            tasks.forEach(task => {
+                if (!task.completed) {
+                    ctx.fillStyle = '#f39c12';
+                    ctx.beginPath();
+                    ctx.arc(task.x, task.y, task.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(task.label, task.x, task.y - 20);
+                } else {
+                    ctx.fillStyle = '#888';
+                    ctx.beginPath();
+                    ctx.arc(task.x, task.y, task.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#4ecca3';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.fillText('✓', task.x, task.y + 5);
+                }
+            });
+            
+            // 出口
+            if (exit.open) {
+                ctx.fillStyle = '#4ecca3';
+            } else {
+                ctx.fillStyle = '#888';
+            }
+            ctx.fillRect(exit.x, exit.y, exit.width, exit.height);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('出口', exit.x + exit.width / 2, exit.y - 10);
+            
+            // プレイヤー
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('👤', player.x, player.y + 4);
+            
+            // 加藤先生
+            ctx.fillStyle = teacher.color;
+            ctx.beginPath();
+            ctx.arc(teacher.x, teacher.y, teacher.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('👨‍🏫', teacher.x, teacher.y + 5);
+            
+            ctx.font = '10px Arial';
+            ctx.fillText('加藤先生', teacher.x, teacher.y - 20);
+        }
+        
+        function updateUI() {
+            const completedTasks = tasks.filter(t => t.completed).length;
+            document.getElementById('taskCount').textContent = `${completedTasks}/5`;
+            
+            gameTime = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(gameTime / 60);
+            const seconds = gameTime % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        function gameOver() {
+            gameState = 'gameover';
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+        }
+        
+        function gameClear() {
+            gameState = 'clear';
+            const minutes = Math.floor(gameTime / 60);
+            const seconds = gameTime % 60;
+            document.getElementById('finalTime').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('clearScreen').classList.remove('hidden');
+        }
+        
+        function gameLoop() {
+            if (gameState === 'playing') {
+                updatePlayer();
+                updateTeacher();
+                draw();
+                updateUI();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+    </script>
+</body>
+</html>
