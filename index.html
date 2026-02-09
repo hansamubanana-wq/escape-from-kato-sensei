@@ -14,7 +14,7 @@
         
         body {
             overflow: hidden;
-            background: #1a1a2e;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             font-family: 'Arial', sans-serif;
             touch-action: none;
         }
@@ -29,53 +29,65 @@
         }
         
         #gameCanvas {
-            border: 3px solid #fff;
+            border: 4px solid #4ecca3;
             background: #2d2d44;
             max-width: 100%;
             max-height: 80vh;
             touch-action: none;
+            box-shadow: 0 0 30px rgba(78, 204, 163, 0.3);
+            border-radius: 8px;
         }
         
         #joystickContainer {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 120px;
-            height: 120px;
+            bottom: 30px;
+            left: 30px;
+            width: 140px;
+            height: 140px;
             z-index: 100;
         }
         
         #joystickBase {
             position: absolute;
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 140px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: 3px solid rgba(255, 255, 255, 0.4);
+            background: radial-gradient(circle, rgba(78, 204, 163, 0.3), rgba(78, 204, 163, 0.1));
+            border: 4px solid rgba(78, 204, 163, 0.5);
+            box-shadow: 0 0 20px rgba(78, 204, 163, 0.3);
         }
         
         #joystickStick {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.6);
-            border: 3px solid rgba(255, 255, 255, 0.8);
-            left: 35px;
-            top: 35px;
+            background: radial-gradient(circle at 30% 30%, rgba(78, 204, 163, 0.9), rgba(78, 204, 163, 0.6));
+            border: 4px solid rgba(78, 204, 163, 1);
+            left: 40px;
+            top: 40px;
             touch-action: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
         }
         
         #ui {
             position: fixed;
-            top: 10px;
-            left: 10px;
+            top: 15px;
+            left: 15px;
             color: white;
-            font-size: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 8px;
+            font-size: 18px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+            padding: 15px 20px;
+            border-radius: 12px;
             z-index: 50;
+            border: 2px solid rgba(78, 204, 163, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        #ui div {
+            margin: 5px 0;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
         }
         
         #gameOverScreen, #startScreen, #clearScreen {
@@ -84,7 +96,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.98));
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -94,39 +106,88 @@
         }
         
         #startScreen h1, #gameOverScreen h1, #clearScreen h1 {
-            font-size: 32px;
-            margin-bottom: 20px;
+            font-size: 36px;
+            margin-bottom: 25px;
             text-align: center;
+            text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.8);
         }
         
         #startScreen p, #gameOverScreen p, #clearScreen p {
-            font-size: 18px;
-            margin-bottom: 30px;
+            font-size: 20px;
+            margin-bottom: 35px;
             text-align: center;
             padding: 0 20px;
+            line-height: 1.6;
         }
         
         .btn {
-            padding: 15px 30px;
-            font-size: 20px;
-            background: #e94560;
+            padding: 18px 40px;
+            font-size: 22px;
+            background: linear-gradient(135deg, #e94560, #c73a52);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             touch-action: manipulation;
+            box-shadow: 0 6px 20px rgba(233, 69, 96, 0.4);
+            transition: all 0.3s;
+            font-weight: bold;
         }
         
         .btn:active {
-            background: #c73a52;
+            background: linear-gradient(135deg, #c73a52, #a32d42);
+            transform: translateY(2px);
+            box-shadow: 0 3px 10px rgba(233, 69, 96, 0.4);
         }
         
         #clearScreen h1 {
             color: #4ecca3;
+            text-shadow: 0 0 20px rgba(78, 204, 163, 0.6);
         }
         
         .hidden {
             display: none !important;
+        }
+        
+        #progressBarContainer {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid rgba(78, 204, 163, 0.3);
+            display: none;
+            z-index: 100;
+        }
+        
+        #progressBarContainer.active {
+            display: block;
+        }
+        
+        #progressBar {
+            width: 200px;
+            height: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid rgba(78, 204, 163, 0.5);
+        }
+        
+        #progressBarFill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4ecca3, #45b393);
+            transition: width 0.1s;
+            box-shadow: 0 0 10px rgba(78, 204, 163, 0.6);
+        }
+        
+        #progressLabel {
+            color: #4ecca3;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
         }
     </style>
 </head>
@@ -141,14 +202,21 @@
     </div>
     
     <div id="ui">
-        <div>タスク: <span id="taskCount">0/5</span></div>
-        <div>時間: <span id="timer">0:00</span></div>
+        <div>📝 タスク: <span id="taskCount">0/5</span></div>
+        <div>⏱️ 時間: <span id="timer">0:00</span></div>
+    </div>
+    
+    <div id="progressBarContainer">
+        <div id="progressLabel">タスク進行中...</div>
+        <div id="progressBar">
+            <div id="progressBarFill"></div>
+        </div>
     </div>
     
     <div id="startScreen">
         <h1>🏃 加藤先生から逃げろ！</h1>
         <p>数学教師の加藤先生から逃げながら<br>5つのタスクをクリアして脱出しよう！</p>
-        <p>仮想スティックで移動<br>タスク地点で自動クリア</p>
+        <p>📍 タスク地点に留まってゲージを溜めよう<br>🕹️ 仮想スティックで移動</p>
         <button class="btn" onclick="startGame()">ゲーム開始</button>
     </div>
     
@@ -161,7 +229,7 @@
     <div id="clearScreen" class="hidden">
         <h1>🎉 脱出成功！</h1>
         <p>おめでとう！<br>加藤先生から無事逃げ切りました！</p>
-        <p>タイム: <span id="finalTime"></span></p>
+        <p>⏱️ タイム: <span id="finalTime"></span></p>
         <button class="btn" onclick="restartGame()">もう一度プレイ</button>
     </div>
 
@@ -184,21 +252,23 @@
         const player = {
             x: 100,
             y: 100,
-            size: 20,
-            speed: 3,
-            color: '#4ecca3'
+            size: 30,
+            speed: 2.2,
+            color: '#4ecca3',
+            angle: 0
         };
         
         // 加藤先生（鬼）
         const teacher = {
             x: 700,
             y: 500,
-            size: 25,
-            speed: 1.8,
+            size: 35,
+            speed: 1.5,
             color: '#e94560',
             chaseRange: 350,
             patrolTarget: {x: 400, y: 300},
-            patrolTimer: 0
+            patrolTimer: 0,
+            angle: 0
         };
         
         // 壁と障害物
@@ -219,6 +289,11 @@
         
         // タスク
         const tasks = [];
+        
+        // 現在のタスク進行状況
+        let currentTask = null;
+        let taskProgress = 0;
+        const TASK_COMPLETION_TIME = 120; // フレーム数（約2秒）
         
         // 出口
         const exit = {
@@ -269,15 +344,15 @@
             let dy = touch.clientY - centerY;
             
             const distance = Math.sqrt(dx * dx + dy * dy);
-            const maxDistance = 35;
+            const maxDistance = 40;
             
             if (distance > maxDistance) {
                 dx = (dx / distance) * maxDistance;
                 dy = (dy / distance) * maxDistance;
             }
             
-            joystickStick.style.left = (35 + dx) + 'px';
-            joystickStick.style.top = (35 + dy) + 'px';
+            joystickStick.style.left = (40 + dx) + 'px';
+            joystickStick.style.top = (40 + dy) + 'px';
             
             joystick.dx = dx / maxDistance;
             joystick.dy = dy / maxDistance;
@@ -291,8 +366,8 @@
             joystick.dx = 0;
             joystick.dy = 0;
             
-            joystickStick.style.left = '35px';
-            joystickStick.style.top = '35px';
+            joystickStick.style.left = '40px';
+            joystickStick.style.top = '40px';
         }
         
         function startGame() {
@@ -309,9 +384,12 @@
             teacher.x = 700;
             teacher.y = 500;
             teacher.patrolTimer = 0;
-            randomizeTasks(); // タスクをランダムに再配置
+            randomizeTasks();
             exit.open = false;
             startTime = Date.now();
+            currentTask = null;
+            taskProgress = 0;
+            document.getElementById('progressBarContainer').classList.remove('active');
         }
         
         function restartGame() {
@@ -339,27 +417,26 @@
         }
         
         function randomizeTasks() {
-            tasks.length = 0; // 配列をクリア
+            tasks.length = 0;
             
             for (let i = 1; i <= 5; i++) {
                 let x, y, attempts = 0;
                 
-                // 壁や障害物と重ならない位置を探す
                 do {
                     x = 50 + Math.random() * (GAME_WIDTH - 100);
                     y = 50 + Math.random() * (GAME_HEIGHT - 100);
                     attempts++;
                     
-                    // 無限ループ防止
                     if (attempts > 100) break;
                 } while (checkWallCollision(x, y, 30));
                 
                 tasks.push({
                     x: x,
                     y: y,
-                    size: 15,
+                    size: 20,
                     completed: false,
-                    label: `数式${i}`
+                    label: `数式${i}`,
+                    pulse: 0
                 });
             }
         }
@@ -375,17 +452,47 @@
                 player.y = newY;
             }
             
+            // 移動方向を記録
+            if (joystick.dx !== 0 || joystick.dy !== 0) {
+                player.angle = Math.atan2(joystick.dy, joystick.dx);
+            }
+            
             // タスクチェック
+            let nearTask = null;
             tasks.forEach(task => {
-                if (!task.completed && checkCollision(player, task, player.size, task.size * 2)) {
-                    task.completed = true;
+                if (!task.completed && checkCollision(player, task, player.size, task.size * 3)) {
+                    nearTask = task;
+                }
+            });
+            
+            if (nearTask) {
+                currentTask = nearTask;
+                taskProgress++;
+                
+                // 進行バー更新
+                const progress = Math.min(100, (taskProgress / TASK_COMPLETION_TIME) * 100);
+                document.getElementById('progressBarFill').style.width = progress + '%';
+                document.getElementById('progressBarContainer').classList.add('active');
+                
+                if (taskProgress >= TASK_COMPLETION_TIME) {
+                    nearTask.completed = true;
+                    taskProgress = 0;
+                    currentTask = null;
+                    document.getElementById('progressBarContainer').classList.remove('active');
                     
                     // 全タスク完了チェック
                     if (tasks.every(t => t.completed)) {
                         exit.open = true;
                     }
                 }
-            });
+            } else {
+                if (currentTask) {
+                    taskProgress = 0;
+                    currentTask = null;
+                    document.getElementById('progressBarContainer').classList.remove('active');
+                    document.getElementById('progressBarFill').style.width = '0%';
+                }
+            }
             
             // 出口チェック
             if (exit.open && 
@@ -402,8 +509,8 @@
             
             // 追跡AI
             if (distance < teacher.chaseRange) {
-                // プレイヤーを追いかける
                 const angle = Math.atan2(dy, dx);
+                teacher.angle = angle;
                 const newX = teacher.x + Math.cos(angle) * teacher.speed;
                 const newY = teacher.y + Math.sin(angle) * teacher.speed;
                 
@@ -414,10 +521,9 @@
                     teacher.y = newY;
                 }
             } else {
-                // パトロール - マップ全体をランダムに巡回
                 teacher.patrolTimer++;
                 
-                if (teacher.patrolTimer > 180) {  // 約3秒ごとに新しい目標地点を設定
+                if (teacher.patrolTimer > 180) {
                     teacher.patrolTarget.x = 100 + Math.random() * 600;
                     teacher.patrolTarget.y = 100 + Math.random() * 400;
                     teacher.patrolTimer = 0;
@@ -426,6 +532,7 @@
                 const dx = teacher.patrolTarget.x - teacher.x;
                 const dy = teacher.patrolTarget.y - teacher.y;
                 const angle = Math.atan2(dy, dx);
+                teacher.angle = angle;
                 
                 const newX = teacher.x + Math.cos(angle) * teacher.speed * 0.7;
                 const newY = teacher.y + Math.sin(angle) * teacher.speed * 0.7;
@@ -445,76 +552,265 @@
         }
         
         function draw() {
-            // 背景
-            ctx.fillStyle = '#2d2d44';
+            // 背景グラデーション
+            const gradient = ctx.createLinearGradient(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            gradient.addColorStop(0, '#2d2d44');
+            gradient.addColorStop(1, '#1a1a2e');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
             
-            // 壁
-            ctx.fillStyle = '#555';
+            // グリッドパターン（オプション）
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < GAME_WIDTH; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, GAME_HEIGHT);
+                ctx.stroke();
+            }
+            for (let i = 0; i < GAME_HEIGHT; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(GAME_WIDTH, i);
+                ctx.stroke();
+            }
+            
+            // 壁と障害物
             walls.forEach(wall => {
+                // 影
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(wall.x + 3, wall.y + 3, wall.width, wall.height);
+                
+                // グラデーション
+                const wallGradient = ctx.createLinearGradient(wall.x, wall.y, wall.x + wall.width, wall.y + wall.height);
+                wallGradient.addColorStop(0, '#666');
+                wallGradient.addColorStop(1, '#444');
+                ctx.fillStyle = wallGradient;
                 ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+                
+                // ハイライト
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.fillRect(wall.x, wall.y, wall.width, 3);
             });
             
             // タスク
             tasks.forEach(task => {
+                task.pulse += 0.1;
+                const pulseSize = Math.sin(task.pulse) * 3;
+                
                 if (!task.completed) {
-                    ctx.fillStyle = '#f39c12';
+                    // グロー効果
+                    ctx.shadowColor = '#f39c12';
+                    ctx.shadowBlur = 20 + pulseSize;
+                    
+                    // タスクの円
+                    const taskGradient = ctx.createRadialGradient(task.x, task.y, 5, task.x, task.y, task.size + pulseSize);
+                    taskGradient.addColorStop(0, '#f39c12');
+                    taskGradient.addColorStop(1, '#e67e22');
+                    ctx.fillStyle = taskGradient;
                     ctx.beginPath();
-                    ctx.arc(task.x, task.y, task.size, 0, Math.PI * 2);
+                    ctx.arc(task.x, task.y, task.size + pulseSize, 0, Math.PI * 2);
                     ctx.fill();
                     
+                    ctx.shadowBlur = 0;
+                    
+                    // ラベル
                     ctx.fillStyle = '#fff';
-                    ctx.font = '12px Arial';
+                    ctx.font = 'bold 14px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText(task.label, task.x, task.y - 20);
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                    ctx.shadowBlur = 4;
+                    ctx.fillText(task.label, task.x, task.y - 30);
+                    ctx.shadowBlur = 0;
+                    
+                    // 範囲表示（現在のタスク）
+                    if (currentTask === task) {
+                        ctx.strokeStyle = 'rgba(243, 156, 18, 0.3)';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.arc(task.x, task.y, task.size * 3, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
                 } else {
-                    ctx.fillStyle = '#888';
+                    // 完了したタスク
+                    ctx.fillStyle = '#555';
                     ctx.beginPath();
                     ctx.arc(task.x, task.y, task.size, 0, Math.PI * 2);
                     ctx.fill();
                     
                     ctx.fillStyle = '#4ecca3';
-                    ctx.font = 'bold 16px Arial';
-                    ctx.fillText('✓', task.x, task.y + 5);
+                    ctx.font = 'bold 24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                    ctx.shadowBlur = 4;
+                    ctx.fillText('✓', task.x, task.y + 8);
+                    ctx.shadowBlur = 0;
                 }
             });
             
             // 出口
             if (exit.open) {
+                ctx.shadowColor = '#4ecca3';
+                ctx.shadowBlur = 25;
                 ctx.fillStyle = '#4ecca3';
             } else {
-                ctx.fillStyle = '#888';
+                ctx.fillStyle = '#555';
             }
             ctx.fillRect(exit.x, exit.y, exit.width, exit.height);
+            ctx.shadowBlur = 0;
             
             ctx.fillStyle = '#fff';
-            ctx.font = '14px Arial';
+            ctx.font = 'bold 16px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('出口', exit.x + exit.width / 2, exit.y - 10);
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 4;
+            ctx.fillText('出口', exit.x + exit.width / 2, exit.y - 15);
+            ctx.shadowBlur = 0;
             
-            // プレイヤー
-            ctx.fillStyle = player.color;
+            // プレイヤー描画
+            drawPlayer();
+            
+            // 加藤先生描画
+            drawTeacher();
+        }
+        
+        function drawPlayer() {
+            // 影
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(player.x + 2, player.y + player.size / 2 + 2, player.size / 2, player.size / 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // グロー効果
+            ctx.shadowColor = player.color;
+            ctx.shadowBlur = 15;
+            
+            // キャラクター本体
+            const playerGradient = ctx.createRadialGradient(
+                player.x - player.size / 4, 
+                player.y - player.size / 4, 
+                0,
+                player.x, 
+                player.y, 
+                player.size / 2
+            );
+            playerGradient.addColorStop(0, '#6effd5');
+            playerGradient.addColorStop(1, player.color);
+            ctx.fillStyle = playerGradient;
             ctx.beginPath();
             ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
             ctx.fill();
             
+            ctx.shadowBlur = 0;
+            
+            // 目と向き
+            const eyeOffsetX = Math.cos(player.angle) * 5;
+            const eyeOffsetY = Math.sin(player.angle) * 5;
+            
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(player.x + eyeOffsetX - 4, player.y + eyeOffsetY - 3, 3, 0, Math.PI * 2);
+            ctx.arc(player.x + eyeOffsetX + 4, player.y + eyeOffsetY - 3, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(player.x + eyeOffsetX - 3, player.y + eyeOffsetY - 3, 1.5, 0, Math.PI * 2);
+            ctx.arc(player.x + eyeOffsetX + 5, player.y + eyeOffsetY - 3, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // ラベル
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('👤', player.x, player.y + 4);
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 4;
+            ctx.fillText('YOU', player.x, player.y + player.size / 2 + 18);
+            ctx.shadowBlur = 0;
+        }
+        
+        function drawTeacher() {
+            // 追跡範囲の表示（薄く）
+            if (gameState === 'playing') {
+                const dx = player.x - teacher.x;
+                const dy = player.y - teacher.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < teacher.chaseRange) {
+                    ctx.strokeStyle = 'rgba(233, 69, 96, 0.15)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.arc(teacher.x, teacher.y, teacher.chaseRange, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
             
-            // 加藤先生
-            ctx.fillStyle = teacher.color;
+            // 影
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(teacher.x + 3, teacher.y + teacher.size / 2 + 3, teacher.size / 2, teacher.size / 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // グロー効果
+            ctx.shadowColor = teacher.color;
+            ctx.shadowBlur = 20;
+            
+            // キャラクター本体
+            const teacherGradient = ctx.createRadialGradient(
+                teacher.x - teacher.size / 4, 
+                teacher.y - teacher.size / 4, 
+                0,
+                teacher.x, 
+                teacher.y, 
+                teacher.size / 2
+            );
+            teacherGradient.addColorStop(0, '#ff6b88');
+            teacherGradient.addColorStop(1, teacher.color);
+            ctx.fillStyle = teacherGradient;
             ctx.beginPath();
             ctx.arc(teacher.x, teacher.y, teacher.size / 2, 0, Math.PI * 2);
             ctx.fill();
             
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 14px Arial';
-            ctx.fillText('👨‍🏫', teacher.x, teacher.y + 5);
+            ctx.shadowBlur = 0;
             
-            ctx.font = '10px Arial';
-            ctx.fillText('加藤先生', teacher.x, teacher.y - 20);
+            // 怒りマーク（追跡中）
+            const dx = player.x - teacher.x;
+            const dy = player.y - teacher.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < teacher.chaseRange) {
+                ctx.fillStyle = '#ff0000';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('💢', teacher.x + 15, teacher.y - 15);
+            }
+            
+            // 目
+            const eyeOffsetX = Math.cos(teacher.angle) * 6;
+            const eyeOffsetY = Math.sin(teacher.angle) * 6;
+            
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(teacher.x + eyeOffsetX - 5, teacher.y + eyeOffsetY - 4, 4, 0, Math.PI * 2);
+            ctx.arc(teacher.x + eyeOffsetX + 5, teacher.y + eyeOffsetY - 4, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(teacher.x + eyeOffsetX - 4, teacher.y + eyeOffsetY - 4, 2, 0, Math.PI * 2);
+            ctx.arc(teacher.x + eyeOffsetX + 6, teacher.y + eyeOffsetY - 4, 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // ラベル
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 4;
+            ctx.fillText('加藤先生', teacher.x, teacher.y + teacher.size / 2 + 22);
+            ctx.shadowBlur = 0;
         }
         
         function updateUI() {
