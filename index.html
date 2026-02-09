@@ -38,7 +38,6 @@
             border-radius: 8px;
         }
         
-        /* 縦画面用 */
         @media (orientation: portrait) {
             #gameCanvas {
                 max-width: 100%;
@@ -46,7 +45,6 @@
             }
         }
         
-        /* 横画面用 */
         @media (orientation: landscape) {
             #gameCanvas {
                 max-width: 95vw;
@@ -78,15 +76,13 @@
             }
             
             #joystickBase {
-                width: 120px;
-                height: 120px;
+                width: 120px !important;
+                height: 120px !important;
             }
             
             #joystickStick {
-                width: 50px;
-                height: 50px;
-                left: 35px;
-                top: 35px;
+                width: 50px !important;
+                height: 50px !important;
             }
         }
         
@@ -140,6 +136,30 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
         }
         
+        #lives {
+            font-size: 24px;
+        }
+        
+        #minimap {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 160px;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(78, 204, 163, 0.5);
+            border-radius: 8px;
+            z-index: 50;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        @media (orientation: landscape) {
+            #minimap {
+                width: 140px;
+                height: 105px;
+            }
+        }
+        
         #gameOverScreen, #startScreen, #clearScreen {
             position: fixed;
             top: 0;
@@ -182,8 +202,8 @@
             }
             
             .btn {
-                padding: 12px 30px;
-                font-size: 18px;
+                padding: 12px 30px !important;
+                font-size: 18px !important;
             }
         }
         
@@ -199,12 +219,21 @@
             box-shadow: 0 6px 20px rgba(233, 69, 96, 0.4);
             transition: all 0.3s;
             font-weight: bold;
+            margin: 5px;
         }
         
         .btn:active {
             background: linear-gradient(135deg, #c73a52, #a32d42);
             transform: translateY(2px);
             box-shadow: 0 3px 10px rgba(233, 69, 96, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #4ecca3, #45b393);
+        }
+        
+        .btn-secondary:active {
+            background: linear-gradient(135deg, #45b393, #3a9d7d);
         }
         
         #clearScreen h1 {
@@ -236,12 +265,12 @@
             }
             
             #progressBar {
-                width: 150px;
-                height: 20px;
+                width: 150px !important;
+                height: 20px !important;
             }
             
             #progressLabel {
-                font-size: 12px;
+                font-size: 12px !important;
             }
         }
         
@@ -273,6 +302,77 @@
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
         }
+        
+        #difficultySelect {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .difficulty-btn {
+            padding: 12px 24px;
+            font-size: 18px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-btn:hover, .difficulty-btn.selected {
+            background: rgba(78, 204, 163, 0.3);
+            border-color: #4ecca3;
+            box-shadow: 0 0 15px rgba(78, 204, 163, 0.4);
+        }
+        
+        #highScores {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            max-width: 400px;
+        }
+        
+        #highScores h3 {
+            color: #4ecca3;
+            margin-bottom: 10px;
+        }
+        
+        #highScores ol {
+            text-align: left;
+            padding-left: 25px;
+        }
+        
+        #highScores li {
+            margin: 5px 0;
+        }
+        
+        .powerup-icon {
+            font-size: 20px;
+        }
+        
+        #soundToggle {
+            position: fixed;
+            top: 15px;
+            right: 190px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(78, 204, 163, 0.3);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 50;
+            font-size: 20px;
+        }
+        
+        @media (orientation: landscape) {
+            #soundToggle {
+                right: 160px;
+                padding: 8px 12px;
+                font-size: 18px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -286,9 +386,15 @@
     </div>
     
     <div id="ui">
+        <div id="lives">❤️ ×3</div>
         <div>📝 タスク: <span id="taskCount">0/5</span></div>
         <div>⏱️ 時間: <span id="timer">0:00</span></div>
+        <div id="powerupStatus"></div>
     </div>
+    
+    <canvas id="minimap"></canvas>
+    
+    <button id="soundToggle" onclick="toggleSound()">🔊</button>
     
     <div id="progressBarContainer">
         <div id="progressLabel">タスク進行中...</div>
@@ -299,38 +405,63 @@
     
     <div id="startScreen">
         <h1>🏃 加藤先生から逃げろ！</h1>
-        <p>数学教師の加藤先生から逃げながら<br>5つのタスクをクリアして脱出しよう！</p>
-        <p>📍 タスク地点に留まってゲージを溜めよう<br>🕹️ 仮想スティックで移動</p>
+        
+        <div id="highScores" class="hidden">
+            <h3>🏆 ハイスコア</h3>
+            <ol id="scoreList"></ol>
+        </div>
+        
+        <p>数学教師の加藤先生から逃げながら<br>タスクをクリアして脱出しよう！</p>
+        
+        <div id="difficultySelect">
+            <button class="difficulty-btn selected" onclick="selectDifficulty('easy')">
+                😊 イージー
+            </button>
+            <button class="difficulty-btn" onclick="selectDifficulty('normal')">
+                😐 ノーマル
+            </button>
+            <button class="difficulty-btn" onclick="selectDifficulty('hard')">
+                😱 ハード
+            </button>
+        </div>
+        
+        <p style="font-size: 16px;">
+            ⚡ パワーアップを集めよう！<br>
+            🚀 スピード 👻 透明化 ⏸️ 時間停止
+        </p>
+        
         <button class="btn" onclick="startGame()">ゲーム開始</button>
     </div>
     
     <div id="gameOverScreen" class="hidden">
-        <h1>😱 捕まった！</h1>
-        <p>加藤先生に捕まってしまいました...</p>
+        <h1>😱 ゲームオーバー</h1>
+        <p>全てのライフを失いました...</p>
         <button class="btn" onclick="restartGame()">もう一度挑戦</button>
     </div>
     
     <div id="clearScreen" class="hidden">
         <h1>🎉 脱出成功！</h1>
-        <p>おめでとう！<br>加藤先生から無事逃げ切りました！</p>
+        <p id="clearMessage"></p>
         <p>⏱️ タイム: <span id="finalTime"></span></p>
         <button class="btn" onclick="restartGame()">もう一度プレイ</button>
+        <button class="btn btn-secondary" onclick="viewHighScores()">ハイスコアを見る</button>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimap');
+        const minimapCtx = minimapCanvas.getContext('2d');
         
-        // ゲーム内部の論理サイズ（固定）
+        // ゲーム内部の論理サイズ
         const GAME_WIDTH = 800;
         const GAME_HEIGHT = 600;
         
-        // 画面サイズに合わせてキャンバスを調整
+        // 画面サイズに合わせて調整
         function resizeCanvas() {
             const isLandscape = window.innerWidth > window.innerHeight;
             
             if (isLandscape) {
-                // 横画面: 画面の高さに合わせる
                 const maxHeight = window.innerHeight * 0.9;
                 const scale = maxHeight / GAME_HEIGHT;
                 canvas.width = GAME_WIDTH;
@@ -338,7 +469,6 @@
                 canvas.style.width = (GAME_WIDTH * scale) + 'px';
                 canvas.style.height = (GAME_HEIGHT * scale) + 'px';
             } else {
-                // 縦画面: 画面の幅に合わせる
                 const maxWidth = window.innerWidth * 0.95;
                 const scale = Math.min(maxWidth / GAME_WIDTH, window.innerHeight * 0.7 / GAME_HEIGHT);
                 canvas.width = GAME_WIDTH;
@@ -346,12 +476,13 @@
                 canvas.style.width = (GAME_WIDTH * scale) + 'px';
                 canvas.style.height = (GAME_HEIGHT * scale) + 'px';
             }
+            
+            minimapCanvas.width = 160;
+            minimapCanvas.height = 120;
         }
         
-        // 初期サイズ設定
         resizeCanvas();
         
-        // 画面の向きが変わったときやリサイズ時に再調整
         window.addEventListener('resize', () => {
             resizeCanvas();
             if (gameState === 'playing') {
@@ -371,6 +502,95 @@
         let gameState = 'start';
         let startTime = 0;
         let gameTime = 0;
+        let difficulty = 'easy';
+        let lives = 3;
+        let soundEnabled = true;
+        
+        // サウンド設定
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (!soundEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'task':
+                    oscillator.frequency.value = 800;
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                    break;
+                case 'powerup':
+                    oscillator.frequency.value = 1000;
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+                case 'hit':
+                    oscillator.frequency.value = 200;
+                    oscillator.type = 'sawtooth';
+                    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                case 'clear':
+                    oscillator.frequency.value = 1200;
+                    gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                    break;
+            }
+        }
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+        
+        // 難易度設定
+        const difficultySettings = {
+            easy: {
+                playerSpeed: 2.5,
+                teacherSpeed: 1.3,
+                teacherCount: 1,
+                taskCount: 3,
+                lives: 3,
+                label: 'イージー'
+            },
+            normal: {
+                playerSpeed: 2.2,
+                teacherSpeed: 1.5,
+                teacherCount: 1,
+                taskCount: 5,
+                lives: 3,
+                label: 'ノーマル'
+            },
+            hard: {
+                playerSpeed: 2.0,
+                teacherSpeed: 1.8,
+                teacherCount: 2,
+                taskCount: 7,
+                lives: 2,
+                label: 'ハード'
+            }
+        };
+        
+        function selectDifficulty(level) {
+            difficulty = level;
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
         
         // プレイヤー
         const player = {
@@ -383,27 +603,28 @@
         };
         
         // 加藤先生（鬼）
-        const teacher = {
-            x: 700,
-            y: 500,
-            size: 35,
-            speed: 1.5,
-            color: '#e94560',
-            chaseRange: 350,
-            patrolTarget: {x: 400, y: 300},
-            patrolTimer: 0,
-            angle: 0
-        };
+        let teachers = [];
+        
+        function createTeacher(x, y) {
+            return {
+                x: x,
+                y: y,
+                size: 35,
+                speed: 1.5,
+                color: '#e94560',
+                chaseRange: 350,
+                patrolTarget: {x: 400, y: 300},
+                patrolTimer: 0,
+                angle: 0
+            };
+        }
         
         // 壁と障害物
         const walls = [
-            // 外壁
             {x: 0, y: 0, width: GAME_WIDTH, height: 20},
             {x: 0, y: 0, width: 20, height: GAME_HEIGHT},
             {x: GAME_WIDTH - 20, y: 0, width: 20, height: GAME_HEIGHT},
             {x: 0, y: GAME_HEIGHT - 20, width: GAME_WIDTH, height: 20},
-            
-            // 内部の障害物
             {x: 200, y: 150, width: 100, height: 100},
             {x: 500, y: 150, width: 100, height: 100},
             {x: 200, y: 400, width: 100, height: 100},
@@ -414,10 +635,21 @@
         // タスク
         const tasks = [];
         
+        // パワーアップ
+        const powerups = [];
+        let activePowerup = null;
+        let powerupTimer = 0;
+        
+        const powerupTypes = {
+            speed: {icon: '🚀', duration: 300, color: '#3498db'},
+            invisible: {icon: '👻', duration: 300, color: '#9b59b6'},
+            freeze: {icon: '⏸️', duration: 180, color: '#e74c3c'}
+        };
+        
         // 現在のタスク進行状況
         let currentTask = null;
         let taskProgress = 0;
-        const TASK_COMPLETION_TIME = 120; // フレーム数（約2秒）
+        const TASK_COMPLETION_TIME = 120;
         
         // 出口
         const exit = {
@@ -431,15 +663,10 @@
         // 仮想スティック
         let joystick = {
             active: false,
-            startX: 0,
-            startY: 0,
-            currentX: 0,
-            currentY: 0,
             dx: 0,
             dy: 0
         };
         
-        // 仮想スティックの設定
         const joystickStick = document.getElementById('joystickStick');
         const joystickBase = document.getElementById('joystickBase');
         
@@ -450,9 +677,6 @@
         function handleJoystickStart(e) {
             e.preventDefault();
             joystick.active = true;
-            const rect = joystickBase.getBoundingClientRect();
-            joystick.startX = rect.left + rect.width / 2;
-            joystick.startY = rect.top + rect.height / 2;
         }
         
         function handleJoystickMove(e) {
@@ -468,7 +692,7 @@
             let dy = touch.clientY - centerY;
             
             const distance = Math.sqrt(dx * dx + dy * dy);
-            const maxDistance = rect.width / 2 - 10; // 動的に計算
+            const maxDistance = rect.width / 2 - 10;
             
             if (distance > maxDistance) {
                 dx = (dx / distance) * maxDistance;
@@ -495,6 +719,34 @@
             joystickStick.style.top = (rect.height / 2 - 30) + 'px';
         }
         
+        // ハイスコア管理
+        function saveScore(time, difficulty) {
+            const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
+            scores.push({time, difficulty, date: new Date().toISOString()});
+            scores.sort((a, b) => a.time - b.time);
+            localStorage.setItem('highScores', JSON.stringify(scores.slice(0, 10)));
+        }
+        
+        function loadHighScores() {
+            const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
+            const scoreList = document.getElementById('scoreList');
+            
+            if (scores.length > 0) {
+                document.getElementById('highScores').classList.remove('hidden');
+                scoreList.innerHTML = scores.slice(0, 5).map((score, i) => {
+                    const mins = Math.floor(score.time / 60);
+                    const secs = score.time % 60;
+                    return `<li>${mins}:${secs.toString().padStart(2, '0')} (${difficultySettings[score.difficulty].label})</li>`;
+                }).join('');
+            }
+        }
+        
+        function viewHighScores() {
+            document.getElementById('clearScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+            loadHighScores();
+        }
+        
         function startGame() {
             document.getElementById('startScreen').classList.add('hidden');
             gameState = 'playing';
@@ -504,17 +756,29 @@
         }
         
         function resetGame() {
+            const settings = difficultySettings[difficulty];
+            
             player.x = 100;
             player.y = 100;
-            teacher.x = 700;
-            teacher.y = 500;
-            teacher.patrolTimer = 0;
-            randomizeTasks();
+            player.speed = settings.playerSpeed;
+            
+            teachers = [];
+            for (let i = 0; i < settings.teacherCount; i++) {
+                teachers.push(createTeacher(700 - i * 100, 500 - i * 50));
+            }
+            teachers.forEach(t => t.speed = settings.teacherSpeed);
+            
+            lives = settings.lives;
+            randomizeTasks(settings.taskCount);
+            randomizePowerups();
             exit.open = false;
             startTime = Date.now();
             currentTask = null;
             taskProgress = 0;
+            activePowerup = null;
+            powerupTimer = 0;
             document.getElementById('progressBarContainer').classList.remove('active');
+            updateLivesDisplay();
         }
         
         function restartGame() {
@@ -522,6 +786,7 @@
             document.getElementById('clearScreen').classList.add('hidden');
             document.getElementById('startScreen').classList.remove('hidden');
             gameState = 'start';
+            loadHighScores();
         }
         
         function checkCollision(obj1, obj2, size1, size2) {
@@ -541,23 +806,21 @@
             return false;
         }
         
-        function randomizeTasks() {
+        function randomizeTasks(count) {
             tasks.length = 0;
             
-            for (let i = 1; i <= 5; i++) {
+            for (let i = 1; i <= count; i++) {
                 let x, y, attempts = 0;
                 
                 do {
                     x = 50 + Math.random() * (GAME_WIDTH - 100);
                     y = 50 + Math.random() * (GAME_HEIGHT - 100);
                     attempts++;
-                    
                     if (attempts > 100) break;
                 } while (checkWallCollision(x, y, 30));
                 
                 tasks.push({
-                    x: x,
-                    y: y,
+                    x, y,
                     size: 20,
                     completed: false,
                     label: `数式${i}`,
@@ -566,9 +829,40 @@
             }
         }
         
+        function randomizePowerups() {
+            powerups.length = 0;
+            const types = Object.keys(powerupTypes);
+            
+            for (let i = 0; i < 3; i++) {
+                let x, y, attempts = 0;
+                
+                do {
+                    x = 50 + Math.random() * (GAME_WIDTH - 100);
+                    y = 50 + Math.random() * (GAME_HEIGHT - 100);
+                    attempts++;
+                    if (attempts > 100) break;
+                } while (checkWallCollision(x, y, 30));
+                
+                powerups.push({
+                    x, y,
+                    size: 15,
+                    type: types[i % types.length],
+                    collected: false,
+                    pulse: Math.random() * Math.PI * 2
+                });
+            }
+        }
+        
+        function updateLivesDisplay() {
+            document.getElementById('lives').textContent = '❤️ ×' + lives;
+        }
+        
         function updatePlayer() {
-            const newX = player.x + joystick.dx * player.speed;
-            const newY = player.y + joystick.dy * player.speed;
+            let speedMultiplier = 1;
+            if (activePowerup === 'speed') speedMultiplier = 1.8;
+            
+            const newX = player.x + joystick.dx * player.speed * speedMultiplier;
+            const newY = player.y + joystick.dy * player.speed * speedMultiplier;
             
             if (!checkWallCollision(newX, player.y, player.size)) {
                 player.x = newX;
@@ -577,10 +871,19 @@
                 player.y = newY;
             }
             
-            // 移動方向を記録
             if (joystick.dx !== 0 || joystick.dy !== 0) {
                 player.angle = Math.atan2(joystick.dy, joystick.dx);
             }
+            
+            // パワーアップ収集
+            powerups.forEach(powerup => {
+                if (!powerup.collected && checkCollision(player, powerup, player.size, powerup.size * 2)) {
+                    powerup.collected = true;
+                    activePowerup = powerup.type;
+                    powerupTimer = powerupTypes[powerup.type].duration;
+                    playSound('powerup');
+                }
+            });
             
             // タスクチェック
             let nearTask = null;
@@ -594,7 +897,6 @@
                 currentTask = nearTask;
                 taskProgress++;
                 
-                // 進行バー更新
                 const progress = Math.min(100, (taskProgress / TASK_COMPLETION_TIME) * 100);
                 document.getElementById('progressBarFill').style.width = progress + '%';
                 document.getElementById('progressBarContainer').classList.add('active');
@@ -604,8 +906,8 @@
                     taskProgress = 0;
                     currentTask = null;
                     document.getElementById('progressBarContainer').classList.remove('active');
+                    playSound('task');
                     
-                    // 全タスク完了チェック
                     if (tasks.every(t => t.completed)) {
                         exit.open = true;
                     }
@@ -625,15 +927,34 @@
                 player.y > exit.y && player.y < exit.y + exit.height) {
                 gameClear();
             }
+            
+            // パワーアップタイマー
+            if (activePowerup) {
+                powerupTimer--;
+                if (powerupTimer <= 0) {
+                    activePowerup = null;
+                }
+                
+                const powerupName = activePowerup === 'speed' ? 'スピード' :
+                                   activePowerup === 'invisible' ? '透明化' : '時間停止';
+                const timeLeft = Math.ceil(powerupTimer / 60);
+                document.getElementById('powerupStatus').textContent = 
+                    `⚡ ${powerupName} (${timeLeft}秒)`;
+            } else {
+                document.getElementById('powerupStatus').textContent = '';
+            }
         }
         
-        function updateTeacher() {
+        function updateTeacher(teacher) {
+            if (activePowerup === 'freeze') return;
+            
             const dx = player.x - teacher.x;
             const dy = player.y - teacher.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            // 追跡AI
-            if (distance < teacher.chaseRange) {
+            const canSeePlayer = activePowerup !== 'invisible';
+            
+            if (canSeePlayer && distance < teacher.chaseRange) {
                 const angle = Math.atan2(dy, dx);
                 teacher.angle = angle;
                 const newX = teacher.x + Math.cos(angle) * teacher.speed;
@@ -671,20 +992,30 @@
             }
             
             // 捕獲チェック
-            if (checkCollision(player, teacher, player.size, teacher.size)) {
-                gameOver();
+            if (activePowerup !== 'invisible' && checkCollision(player, teacher, player.size, teacher.size)) {
+                lives--;
+                updateLivesDisplay();
+                playSound('hit');
+                
+                if (lives <= 0) {
+                    gameOver();
+                } else {
+                    // リスポーン
+                    player.x = 100;
+                    player.y = 100;
+                }
             }
         }
         
         function draw() {
-            // 背景グラデーション
+            // 背景
             const gradient = ctx.createLinearGradient(0, 0, GAME_WIDTH, GAME_HEIGHT);
             gradient.addColorStop(0, '#2d2d44');
             gradient.addColorStop(1, '#1a1a2e');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
             
-            // グリッドパターン（オプション）
+            // グリッド
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
             ctx.lineWidth = 1;
             for (let i = 0; i < GAME_WIDTH; i += 40) {
@@ -700,22 +1031,41 @@
                 ctx.stroke();
             }
             
-            // 壁と障害物
+            // 壁
             walls.forEach(wall => {
-                // 影
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
                 ctx.fillRect(wall.x + 3, wall.y + 3, wall.width, wall.height);
                 
-                // グラデーション
                 const wallGradient = ctx.createLinearGradient(wall.x, wall.y, wall.x + wall.width, wall.y + wall.height);
                 wallGradient.addColorStop(0, '#666');
                 wallGradient.addColorStop(1, '#444');
                 ctx.fillStyle = wallGradient;
                 ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
                 
-                // ハイライト
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
                 ctx.fillRect(wall.x, wall.y, wall.width, 3);
+            });
+            
+            // パワーアップ
+            powerups.forEach(powerup => {
+                if (powerup.collected) return;
+                
+                powerup.pulse += 0.1;
+                const pulseSize = Math.sin(powerup.pulse) * 3;
+                
+                ctx.shadowColor = powerupTypes[powerup.type].color;
+                ctx.shadowBlur = 20;
+                
+                ctx.fillStyle = powerupTypes[powerup.type].color;
+                ctx.beginPath();
+                ctx.arc(powerup.x, powerup.y, powerup.size + pulseSize, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.shadowBlur = 0;
+                
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(powerupTypes[powerup.type].icon, powerup.x, powerup.y + 7);
             });
             
             // タスク
@@ -724,11 +1074,9 @@
                 const pulseSize = Math.sin(task.pulse) * 3;
                 
                 if (!task.completed) {
-                    // グロー効果
                     ctx.shadowColor = '#f39c12';
                     ctx.shadowBlur = 20 + pulseSize;
                     
-                    // タスクの円
                     const taskGradient = ctx.createRadialGradient(task.x, task.y, 5, task.x, task.y, task.size + pulseSize);
                     taskGradient.addColorStop(0, '#f39c12');
                     taskGradient.addColorStop(1, '#e67e22');
@@ -739,7 +1087,6 @@
                     
                     ctx.shadowBlur = 0;
                     
-                    // ラベル
                     ctx.fillStyle = '#fff';
                     ctx.font = 'bold 14px Arial';
                     ctx.textAlign = 'center';
@@ -748,7 +1095,6 @@
                     ctx.fillText(task.label, task.x, task.y - 30);
                     ctx.shadowBlur = 0;
                     
-                    // 範囲表示（現在のタスク）
                     if (currentTask === task) {
                         ctx.strokeStyle = 'rgba(243, 156, 18, 0.3)';
                         ctx.lineWidth = 3;
@@ -757,7 +1103,6 @@
                         ctx.stroke();
                     }
                 } else {
-                    // 完了したタスク
                     ctx.fillStyle = '#555';
                     ctx.beginPath();
                     ctx.arc(task.x, task.y, task.size, 0, Math.PI * 2);
@@ -792,25 +1137,29 @@
             ctx.fillText('出口', exit.x + exit.width / 2, exit.y - 15);
             ctx.shadowBlur = 0;
             
-            // プレイヤー描画
+            // プレイヤー
             drawPlayer();
             
-            // 加藤先生描画
-            drawTeacher();
+            // 加藤先生
+            teachers.forEach(teacher => drawTeacher(teacher));
+            
+            // ミニマップ描画
+            drawMinimap();
         }
         
         function drawPlayer() {
-            // 影
+            const opacity = activePowerup === 'invisible' ? 0.3 : 1;
+            
+            ctx.globalAlpha = opacity;
+            
             ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.beginPath();
             ctx.ellipse(player.x + 2, player.y + player.size / 2 + 2, player.size / 2, player.size / 4, 0, 0, Math.PI * 2);
             ctx.fill();
             
-            // グロー効果
             ctx.shadowColor = player.color;
             ctx.shadowBlur = 15;
             
-            // キャラクター本体
             const playerGradient = ctx.createRadialGradient(
                 player.x - player.size / 4, 
                 player.y - player.size / 4, 
@@ -828,7 +1177,6 @@
             
             ctx.shadowBlur = 0;
             
-            // 目と向き
             const eyeOffsetX = Math.cos(player.angle) * 5;
             const eyeOffsetY = Math.sin(player.angle) * 5;
             
@@ -844,7 +1192,6 @@
             ctx.arc(player.x + eyeOffsetX + 5, player.y + eyeOffsetY - 3, 1.5, 0, Math.PI * 2);
             ctx.fill();
             
-            // ラベル
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
@@ -852,15 +1199,22 @@
             ctx.shadowBlur = 4;
             ctx.fillText('YOU', player.x, player.y + player.size / 2 + 18);
             ctx.shadowBlur = 0;
+            
+            ctx.globalAlpha = 1;
         }
         
-        function drawTeacher() {
-            // 追跡範囲の表示（薄く）
-            if (gameState === 'playing') {
-                const dx = player.x - teacher.x;
-                const dy = player.y - teacher.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
+        function drawTeacher(teacher) {
+            const frozen = activePowerup === 'freeze';
+            
+            if (frozen) {
+                ctx.globalAlpha = 0.5;
+            }
+            
+            const dx = player.x - teacher.x;
+            const dy = player.y - teacher.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (gameState === 'playing' && activePowerup !== 'invisible') {
                 if (distance < teacher.chaseRange) {
                     ctx.strokeStyle = 'rgba(233, 69, 96, 0.15)';
                     ctx.lineWidth = 2;
@@ -872,17 +1226,14 @@
                 }
             }
             
-            // 影
             ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.beginPath();
             ctx.ellipse(teacher.x + 3, teacher.y + teacher.size / 2 + 3, teacher.size / 2, teacher.size / 4, 0, 0, Math.PI * 2);
             ctx.fill();
             
-            // グロー効果
             ctx.shadowColor = teacher.color;
             ctx.shadowBlur = 20;
             
-            // キャラクター本体
             const teacherGradient = ctx.createRadialGradient(
                 teacher.x - teacher.size / 4, 
                 teacher.y - teacher.size / 4, 
@@ -900,19 +1251,20 @@
             
             ctx.shadowBlur = 0;
             
-            // 怒りマーク（追跡中）
-            const dx = player.x - teacher.x;
-            const dy = player.y - teacher.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < teacher.chaseRange) {
+            if (distance < teacher.chaseRange && !frozen) {
                 ctx.fillStyle = '#ff0000';
                 ctx.font = 'bold 20px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('💢', teacher.x + 15, teacher.y - 15);
             }
             
-            // 目
+            if (frozen) {
+                ctx.fillStyle = '#3498db';
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('❄️', teacher.x, teacher.y - 20);
+            }
+            
             const eyeOffsetX = Math.cos(teacher.angle) * 6;
             const eyeOffsetY = Math.sin(teacher.angle) * 6;
             
@@ -928,7 +1280,6 @@
             ctx.arc(teacher.x + eyeOffsetX + 6, teacher.y + eyeOffsetY - 4, 2, 0, Math.PI * 2);
             ctx.fill();
             
-            // ラベル
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 13px Arial';
             ctx.textAlign = 'center';
@@ -936,11 +1287,45 @@
             ctx.shadowBlur = 4;
             ctx.fillText('加藤先生', teacher.x, teacher.y + teacher.size / 2 + 22);
             ctx.shadowBlur = 0;
+            
+            ctx.globalAlpha = 1;
+        }
+        
+        function drawMinimap() {
+            const scale = 0.2;
+            
+            minimapCtx.fillStyle = '#1a1a2e';
+            minimapCtx.fillRect(0, 0, minimapCanvas.width, minimapCanvas.height);
+            
+            // 壁
+            minimapCtx.fillStyle = '#555';
+            walls.forEach(wall => {
+                minimapCtx.fillRect(wall.x * scale, wall.y * scale, wall.width * scale, wall.height * scale);
+            });
+            
+            // タスク
+            tasks.forEach(task => {
+                minimapCtx.fillStyle = task.completed ? '#888' : '#f39c12';
+                minimapCtx.beginPath();
+                minimapCtx.arc(task.x * scale, task.y * scale, 3, 0, Math.PI * 2);
+                minimapCtx.fill();
+            });
+            
+            // 出口
+            minimapCtx.fillStyle = exit.open ? '#4ecca3' : '#555';
+            minimapCtx.fillRect(exit.x * scale, exit.y * scale, exit.width * scale, exit.height * scale);
+            
+            // プレイヤー
+            minimapCtx.fillStyle = '#4ecca3';
+            minimapCtx.beginPath();
+            minimapCtx.arc(player.x * scale, player.y * scale, 4, 0, Math.PI * 2);
+            minimapCtx.fill();
         }
         
         function updateUI() {
             const completedTasks = tasks.filter(t => t.completed).length;
-            document.getElementById('taskCount').textContent = `${completedTasks}/5`;
+            const totalTasks = tasks.length;
+            document.getElementById('taskCount').textContent = `${completedTasks}/${totalTasks}`;
             
             gameTime = Math.floor((Date.now() - startTime) / 1000);
             const minutes = Math.floor(gameTime / 60);
@@ -956,22 +1341,33 @@
         
         function gameClear() {
             gameState = 'clear';
+            playSound('clear');
+            
             const minutes = Math.floor(gameTime / 60);
             const seconds = gameTime % 60;
             document.getElementById('finalTime').textContent = 
                 `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            saveScore(gameTime, difficulty);
+            
+            const settings = difficultySettings[difficulty];
+            document.getElementById('clearMessage').textContent = 
+                `難易度: ${settings.label}で脱出成功！`;
+            
             document.getElementById('clearScreen').classList.remove('hidden');
         }
         
         function gameLoop() {
             if (gameState === 'playing') {
                 updatePlayer();
-                updateTeacher();
+                teachers.forEach(teacher => updateTeacher(teacher));
                 draw();
                 updateUI();
                 requestAnimationFrame(gameLoop);
             }
         }
+        
+        loadHighScores();
     </script>
 </body>
 </html>
