@@ -578,7 +578,7 @@
             normal: {
                 playerSpeed: 2.2,
                 teacherSpeed: 1.5,
-                teacherCount: 1,
+                teacherCount: 2, // 1 → 2
                 taskCount: 5,
                 lives: 3,
                 label: 'ノーマル'
@@ -586,7 +586,7 @@
             hard: {
                 playerSpeed: 2.0,
                 teacherSpeed: 1.8,
-                teacherCount: 2,
+                teacherCount: 3, // 2 → 3
                 taskCount: 7,
                 lives: 2,
                 label: 'ハード'
@@ -621,7 +621,7 @@
                 size: 35,
                 speed: 1.5,
                 color: '#e94560',
-                chaseRange: 350,
+                chaseRange: 600, // 350 → 600に拡大
                 patrolTarget: {x: 400, y: 300},
                 patrolTimer: 0,
                 angle: 0
@@ -636,42 +636,38 @@
             {x: 0, y: GAME_HEIGHT - 20, width: GAME_WIDTH, height: 20},
             // 左上エリア
             {x: 150, y: 150, width: 200, height: 150},
-            {x: 400, y: 100, width: 150, height: 250},
-            {x: 600, y: 200, width: 100, height: 180},
+            {x: 400, y: 100, width: 150, height: 200},
             // 中央上エリア
-            {x: 800, y: 50, width: 120, height: 200},
-            {x: 1000, y: 150, width: 180, height: 120},
-            {x: 1250, y: 80, width: 150, height: 220},
+            {x: 700, y: 80, width: 120, height: 180},
+            {x: 900, y: 150, width: 180, height: 100},
+            {x: 1150, y: 100, width: 150, height: 180},
             // 右上エリア
-            {x: 1450, y: 150, width: 100, height: 180},
+            {x: 1400, y: 150, width: 120, height: 150},
             // 左中央エリア
-            {x: 100, y: 400, width: 180, height: 120},
-            {x: 350, y: 450, width: 150, height: 200},
-            {x: 550, y: 380, width: 100, height: 150},
+            {x: 120, y: 450, width: 150, height: 100},
+            {x: 350, y: 500, width: 120, height: 150},
             // 中央エリア
-            {x: 700, y: 350, width: 120, height: 300},
-            {x: 900, y: 400, width: 200, height: 80},
-            {x: 900, y: 550, width: 80, height: 150},
-            {x: 1050, y: 350, width: 150, height: 120},
-            {x: 1250, y: 400, width: 100, height: 200},
+            {x: 600, y: 400, width: 100, height: 250},
+            {x: 800, y: 450, width: 180, height: 80},
+            {x: 1050, y: 400, width: 120, height: 200},
+            {x: 1250, y: 480, width: 100, height: 150},
             // 右中央エリア
-            {x: 1400, y: 450, width: 150, height: 150},
+            {x: 1420, y: 500, width: 130, height: 120},
             // 左下エリア
-            {x: 150, y: 750, width: 180, height: 120},
-            {x: 400, y: 800, width: 120, height: 200},
-            {x: 580, y: 900, width: 150, height: 100},
+            {x: 180, y: 800, width: 150, height: 100},
+            {x: 400, y: 850, width: 100, height: 150},
             // 中央下エリア
-            {x: 800, y: 750, width: 150, height: 180},
-            {x: 1000, y: 850, width: 120, height: 150},
-            {x: 1200, y: 780, width: 100, height: 200},
+            {x: 650, y: 800, width: 120, height: 150},
+            {x: 850, y: 900, width: 150, height: 100},
+            {x: 1100, y: 850, width: 100, height: 120},
             // 右下エリア
-            {x: 1350, y: 850, width: 180, height: 120},
-            // 小さな障害物
-            {x: 250, y: 550, width: 60, height: 60},
-            {x: 650, y: 650, width: 80, height: 80},
-            {x: 1100, y: 650, width: 70, height: 70},
-            {x: 450, y: 300, width: 50, height: 50},
-            {x: 1300, y: 550, width: 60, height: 60},
+            {x: 1300, y: 900, width: 150, height: 100},
+            // 小さな障害物（戦略的配置）
+            {x: 500, y: 300, width: 60, height: 60},
+            {x: 300, y: 650, width: 70, height: 70},
+            {x: 950, y: 650, width: 80, height: 80},
+            {x: 1350, y: 350, width: 60, height: 60},
+            {x: 750, y: 750, width: 50, height: 50},
         ];
         
         // タスク
@@ -811,6 +807,8 @@
                     teachers.push(createTeacher(1400, 1000));
                 } else if (i === 1) {
                     teachers.push(createTeacher(1400, 200));
+                } else if (i === 2) {
+                    teachers.push(createTeacher(800, 600)); // 中央
                 }
             }
             teachers.forEach(t => t.speed = settings.teacherSpeed);
@@ -1212,8 +1210,105 @@
             // カメラ変換をリセット
             ctx.restore();
             
+            // 画面外の重要なオブジェクトへの方向矢印を表示
+            drawDirectionIndicators();
+            
             // ミニマップ描画（カメラ変換なし）
             drawMinimap();
+        }
+        
+        function drawDirectionIndicators() {
+            const margin = 40; // 画面端からのマージン
+            const arrowSize = 30;
+            
+            // 未完了のタスクへの矢印
+            tasks.forEach(task => {
+                if (!task.completed) {
+                    drawIndicator(task.x, task.y, '📝', '#f39c12', margin, arrowSize);
+                }
+            });
+            
+            // 未取得のパワーアップへの矢印
+            powerups.forEach(powerup => {
+                if (!powerup.collected) {
+                    const icon = powerupTypes[powerup.type].icon;
+                    drawIndicator(powerup.x, powerup.y, icon, powerupTypes[powerup.type].color, margin, arrowSize);
+                }
+            });
+            
+            // 出口への矢印（開いている場合のみ）
+            if (exit.open) {
+                drawIndicator(exit.x + exit.width / 2, exit.y + exit.height / 2, '🚪', '#4ecca3', margin, arrowSize);
+            }
+        }
+        
+        function drawIndicator(targetX, targetY, icon, color, margin, arrowSize) {
+            // カメラの可視範囲
+            const viewLeft = camera.x;
+            const viewRight = camera.x + VIEWPORT_WIDTH;
+            const viewTop = camera.y;
+            const viewBottom = camera.y + VIEWPORT_HEIGHT;
+            
+            // 対象が画面内にあるかチェック
+            if (targetX >= viewLeft && targetX <= viewRight &&
+                targetY >= viewTop && targetY <= viewBottom) {
+                return; // 画面内なので矢印不要
+            }
+            
+            // プレイヤーから対象への方向
+            const dx = targetX - player.x;
+            const dy = targetY - player.y;
+            const angle = Math.atan2(dy, dx);
+            
+            // 画面端での位置を計算
+            let indicatorX, indicatorY;
+            
+            // 画面の中心（プレイヤー位置）
+            const centerX = VIEWPORT_WIDTH / 2;
+            const centerY = VIEWPORT_HEIGHT / 2;
+            
+            // 角度から画面端の位置を計算
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            
+            // 画面の端までの距離を計算
+            const distToEdgeX = cos > 0 ? (VIEWPORT_WIDTH / 2 - margin) : (-VIEWPORT_WIDTH / 2 + margin);
+            const distToEdgeY = sin > 0 ? (VIEWPORT_HEIGHT / 2 - margin) : (-VIEWPORT_HEIGHT / 2 + margin);
+            
+            // どちらの端に先に到達するかを判定
+            const tX = Math.abs(distToEdgeX / cos);
+            const tY = Math.abs(distToEdgeY / sin);
+            const t = Math.min(tX, tY);
+            
+            indicatorX = centerX + cos * t;
+            indicatorY = centerY + sin * t;
+            
+            // 矢印を描画
+            ctx.save();
+            ctx.translate(indicatorX, indicatorY);
+            ctx.rotate(angle);
+            
+            // 矢印の三角形
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(arrowSize / 2, 0);
+            ctx.lineTo(-arrowSize / 2, -arrowSize / 3);
+            ctx.lineTo(-arrowSize / 2, arrowSize / 3);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // アイコンを矢印の後ろに表示
+            ctx.rotate(-angle);
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(icon, -arrowSize, 0);
+            
+            ctx.restore();
         }
         
         function drawPlayer() {
@@ -1376,15 +1471,33 @@
             tasks.forEach(task => {
                 minimapCtx.fillStyle = task.completed ? '#888' : '#f39c12';
                 minimapCtx.beginPath();
-                minimapCtx.arc(task.x * scale, task.y * scale, 3, 0, Math.PI * 2);
+                minimapCtx.arc(task.x * scale, task.y * scale, 2, 0, Math.PI * 2);
                 minimapCtx.fill();
+            });
+            
+            // パワーアップアイテム
+            powerups.forEach(powerup => {
+                if (!powerup.collected) {
+                    minimapCtx.fillStyle = powerupTypes[powerup.type].color;
+                    minimapCtx.beginPath();
+                    minimapCtx.arc(powerup.x * scale, powerup.y * scale, 2, 0, Math.PI * 2);
+                    minimapCtx.fill();
+                }
             });
             
             // 出口
             minimapCtx.fillStyle = exit.open ? '#4ecca3' : '#555';
             minimapCtx.fillRect(exit.x * scale, exit.y * scale, exit.width * scale, exit.height * scale);
             
-            // プレイヤー
+            // 加藤先生（敵）
+            minimapCtx.fillStyle = '#e94560';
+            teachers.forEach(teacher => {
+                minimapCtx.beginPath();
+                minimapCtx.arc(teacher.x * scale, teacher.y * scale, 3, 0, Math.PI * 2);
+                minimapCtx.fill();
+            });
+            
+            // プレイヤー（最後に描画して一番上に）
             minimapCtx.fillStyle = '#4ecca3';
             minimapCtx.beginPath();
             minimapCtx.arc(player.x * scale, player.y * scale, 4, 0, Math.PI * 2);
