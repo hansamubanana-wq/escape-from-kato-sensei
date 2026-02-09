@@ -569,25 +569,25 @@
         const difficultySettings = {
             easy: {
                 playerSpeed: 2.5,
-                teacherSpeed: 1.3,
-                teacherCount: 1,
-                taskCount: 3,
+                teacherSpeed: 1.4,
+                teacherCount: 2, // 1 → 2
+                taskCount: 4, // 3 → 4
                 lives: 3,
                 label: 'イージー'
             },
             normal: {
                 playerSpeed: 2.2,
-                teacherSpeed: 1.5,
-                teacherCount: 2, // 1 → 2
-                taskCount: 5,
+                teacherSpeed: 1.6, // 1.5 → 1.6
+                teacherCount: 3, // 2 → 3
+                taskCount: 6, // 5 → 6
                 lives: 3,
                 label: 'ノーマル'
             },
             hard: {
                 playerSpeed: 2.0,
-                teacherSpeed: 1.8,
-                teacherCount: 3, // 2 → 3
-                taskCount: 7,
+                teacherSpeed: 2.0, // 1.8 → 2.0
+                teacherCount: 4, // 3 → 4
+                taskCount: 8, // 7 → 8
                 lives: 2,
                 label: 'ハード'
             }
@@ -621,7 +621,7 @@
                 size: 35,
                 speed: 1.5,
                 color: '#e94560',
-                chaseRange: 600, // 350 → 600に拡大
+                chaseRange: 1200, // マップの3/4をカバー
                 patrolTarget: {x: 400, y: 300},
                 patrolTimer: 0,
                 angle: 0
@@ -691,8 +691,8 @@
         
         // 出口
         const exit = {
-            x: GAME_WIDTH - 60,
-            y: GAME_HEIGHT / 2 - 30,
+            x: 1500, // 右下の安全な位置
+            y: 1100,
             width: 40,
             height: 60,
             open: false
@@ -802,13 +802,15 @@
             
             teachers = [];
             for (let i = 0; i < settings.teacherCount; i++) {
-                // 新しいマップサイズに合わせて配置（壁に埋まらないように）
+                // 壁に埋まらない安全な位置に配置
                 if (i === 0) {
-                    teachers.push(createTeacher(1400, 1000));
+                    teachers.push(createTeacher(250, 350)); // 左上エリア
                 } else if (i === 1) {
-                    teachers.push(createTeacher(1400, 200));
+                    teachers.push(createTeacher(1350, 350)); // 右上エリア
                 } else if (i === 2) {
-                    teachers.push(createTeacher(800, 600)); // 中央
+                    teachers.push(createTeacher(250, 1050)); // 左下エリア
+                } else if (i === 3) {
+                    teachers.push(createTeacher(1350, 1050)); // 右下エリア
                 }
             }
             teachers.forEach(t => t.speed = settings.teacherSpeed);
@@ -878,7 +880,7 @@
             powerups.length = 0;
             const types = Object.keys(powerupTypes);
             
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 6; i++) { // 3 → 6に増加
                 let x, y, attempts = 0;
                 
                 do {
