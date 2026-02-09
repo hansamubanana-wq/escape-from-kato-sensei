@@ -218,13 +218,7 @@
         ];
         
         // タスク
-        const tasks = [
-            {x: 100, y: 300, size: 15, completed: false, label: '数式1'},
-            {x: 400, y: 80, size: 15, completed: false, label: '数式2'},
-            {x: 700, y: 200, size: 15, completed: false, label: '数式3'},
-            {x: 650, y: 450, size: 15, completed: false, label: '数式4'},
-            {x: 300, y: 520, size: 15, completed: false, label: '数式5'}
-        ];
+        const tasks = [];
         
         // 出口
         const exit = {
@@ -315,7 +309,7 @@
             teacher.x = 700;
             teacher.y = 500;
             teacher.patrolTimer = 0;
-            tasks.forEach(task => task.completed = false);
+            randomizeTasks(); // タスクをランダムに再配置
             exit.open = false;
             startTime = Date.now();
         }
@@ -342,6 +336,32 @@
                 }
             }
             return false;
+        }
+        
+        function randomizeTasks() {
+            tasks.length = 0; // 配列をクリア
+            
+            for (let i = 1; i <= 5; i++) {
+                let x, y, attempts = 0;
+                
+                // 壁や障害物と重ならない位置を探す
+                do {
+                    x = 50 + Math.random() * (GAME_WIDTH - 100);
+                    y = 50 + Math.random() * (GAME_HEIGHT - 100);
+                    attempts++;
+                    
+                    // 無限ループ防止
+                    if (attempts > 100) break;
+                } while (checkWallCollision(x, y, 30));
+                
+                tasks.push({
+                    x: x,
+                    y: y,
+                    size: 15,
+                    completed: false,
+                    label: `数式${i}`
+                });
+            }
         }
         
         function updatePlayer() {
