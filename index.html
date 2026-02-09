@@ -708,6 +708,8 @@
         const joystickStick = document.getElementById('joystickStick');
         const joystickBase = document.getElementById('joystickBase');
         
+        // ベースとスティックの両方でタッチ開始を受け付ける
+        joystickBase.addEventListener('touchstart', handleJoystickStart, {passive: false});
         joystickStick.addEventListener('touchstart', handleJoystickStart, {passive: false});
         document.addEventListener('touchmove', handleJoystickMove, {passive: false});
         document.addEventListener('touchend', handleJoystickEnd, {passive: false});
@@ -715,6 +717,29 @@
         function handleJoystickStart(e) {
             e.preventDefault();
             joystick.active = true;
+            
+            // 最初のタッチ位置からスティックの位置を計算
+            const touch = e.touches[0];
+            const rect = joystickBase.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const maxDistance = rect.width / 2 - 10;
+            
+            if (distance > maxDistance) {
+                dx = (dx / distance) * maxDistance;
+                dy = (dy / distance) * maxDistance;
+            }
+            
+            joystickStick.style.left = (rect.width / 2 - 30 + dx) + 'px';
+            joystickStick.style.top = (rect.height / 2 - 30 + dy) + 'px';
+            
+            joystick.dx = dx / maxDistance;
+            joystick.dy = dy / maxDistance;
         }
         
         function handleJoystickMove(e) {
