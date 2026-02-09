@@ -196,8 +196,9 @@
             size: 25,
             speed: 1.8,
             color: '#e94560',
-            chaseRange: 300,
-            patrolAngle: 0
+            chaseRange: 350,
+            patrolTarget: {x: 400, y: 300},
+            patrolTimer: 0
         };
         
         // 壁と障害物
@@ -313,6 +314,7 @@
             player.y = 100;
             teacher.x = 700;
             teacher.y = 500;
+            teacher.patrolTimer = 0;
             tasks.forEach(task => task.completed = false);
             exit.open = false;
             startTime = Date.now();
@@ -392,10 +394,21 @@
                     teacher.y = newY;
                 }
             } else {
-                // パトロール
-                teacher.patrolAngle += 0.02;
-                const newX = teacher.x + Math.cos(teacher.patrolAngle) * teacher.speed * 0.5;
-                const newY = teacher.y + Math.sin(teacher.patrolAngle) * teacher.speed * 0.5;
+                // パトロール - マップ全体をランダムに巡回
+                teacher.patrolTimer++;
+                
+                if (teacher.patrolTimer > 180) {  // 約3秒ごとに新しい目標地点を設定
+                    teacher.patrolTarget.x = 100 + Math.random() * 600;
+                    teacher.patrolTarget.y = 100 + Math.random() * 400;
+                    teacher.patrolTimer = 0;
+                }
+                
+                const dx = teacher.patrolTarget.x - teacher.x;
+                const dy = teacher.patrolTarget.y - teacher.y;
+                const angle = Math.atan2(dy, dx);
+                
+                const newX = teacher.x + Math.cos(angle) * teacher.speed * 0.7;
+                const newY = teacher.y + Math.sin(angle) * teacher.speed * 0.7;
                 
                 if (!checkWallCollision(newX, teacher.y, teacher.size)) {
                     teacher.x = newX;
