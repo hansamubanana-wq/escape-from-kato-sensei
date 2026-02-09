@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>加藤先生から逃げろ！</title>
     <style>
         * {
@@ -31,11 +33,31 @@
         #gameCanvas {
             border: 4px solid #4ecca3;
             background: #2d2d44;
-            max-width: 100%;
-            max-height: 80vh;
             touch-action: none;
             box-shadow: 0 0 30px rgba(78, 204, 163, 0.3);
             border-radius: 8px;
+        }
+        
+        /* 縦画面用 */
+        @media (orientation: portrait) {
+            #gameCanvas {
+                max-width: 100%;
+                max-height: 70vh;
+            }
+        }
+        
+        /* 横画面用 */
+        @media (orientation: landscape) {
+            #gameCanvas {
+                max-width: 95vw;
+                max-height: 90vh;
+                width: auto;
+                height: auto;
+            }
+            
+            #gameContainer {
+                padding: 5px;
+            }
         }
         
         #joystickContainer {
@@ -45,6 +67,27 @@
             width: 140px;
             height: 140px;
             z-index: 100;
+        }
+        
+        @media (orientation: landscape) {
+            #joystickContainer {
+                bottom: 20px;
+                left: 20px;
+                width: 120px;
+                height: 120px;
+            }
+            
+            #joystickBase {
+                width: 120px;
+                height: 120px;
+            }
+            
+            #joystickStick {
+                width: 50px;
+                height: 50px;
+                left: 35px;
+                top: 35px;
+            }
         }
         
         #joystickBase {
@@ -84,6 +127,13 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
         
+        @media (orientation: landscape) {
+            #ui {
+                font-size: 16px;
+                padding: 10px 15px;
+            }
+        }
+        
         #ui div {
             margin: 5px 0;
             font-weight: bold;
@@ -118,6 +168,23 @@
             text-align: center;
             padding: 0 20px;
             line-height: 1.6;
+        }
+        
+        @media (orientation: landscape) {
+            #startScreen h1, #gameOverScreen h1, #clearScreen h1 {
+                font-size: 28px;
+                margin-bottom: 15px;
+            }
+            
+            #startScreen p, #gameOverScreen p, #clearScreen p {
+                font-size: 16px;
+                margin-bottom: 20px;
+            }
+            
+            .btn {
+                padding: 12px 30px;
+                font-size: 18px;
+            }
         }
         
         .btn {
@@ -159,6 +226,23 @@
             border: 2px solid rgba(78, 204, 163, 0.3);
             display: none;
             z-index: 100;
+        }
+        
+        @media (orientation: landscape) {
+            #progressBarContainer {
+                bottom: 20px;
+                right: 20px;
+                padding: 10px;
+            }
+            
+            #progressBar {
+                width: 150px;
+                height: 20px;
+            }
+            
+            #progressLabel {
+                font-size: 12px;
+            }
         }
         
         #progressBarContainer.active {
@@ -237,11 +321,51 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // キャンバスサイズ設定
+        // ゲーム内部の論理サイズ（固定）
         const GAME_WIDTH = 800;
         const GAME_HEIGHT = 600;
-        canvas.width = GAME_WIDTH;
-        canvas.height = GAME_HEIGHT;
+        
+        // 画面サイズに合わせてキャンバスを調整
+        function resizeCanvas() {
+            const isLandscape = window.innerWidth > window.innerHeight;
+            
+            if (isLandscape) {
+                // 横画面: 画面の高さに合わせる
+                const maxHeight = window.innerHeight * 0.9;
+                const scale = maxHeight / GAME_HEIGHT;
+                canvas.width = GAME_WIDTH;
+                canvas.height = GAME_HEIGHT;
+                canvas.style.width = (GAME_WIDTH * scale) + 'px';
+                canvas.style.height = (GAME_HEIGHT * scale) + 'px';
+            } else {
+                // 縦画面: 画面の幅に合わせる
+                const maxWidth = window.innerWidth * 0.95;
+                const scale = Math.min(maxWidth / GAME_WIDTH, window.innerHeight * 0.7 / GAME_HEIGHT);
+                canvas.width = GAME_WIDTH;
+                canvas.height = GAME_HEIGHT;
+                canvas.style.width = (GAME_WIDTH * scale) + 'px';
+                canvas.style.height = (GAME_HEIGHT * scale) + 'px';
+            }
+        }
+        
+        // 初期サイズ設定
+        resizeCanvas();
+        
+        // 画面の向きが変わったときやリサイズ時に再調整
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            if (gameState === 'playing') {
+                draw();
+            }
+        });
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                resizeCanvas();
+                if (gameState === 'playing') {
+                    draw();
+                }
+            }, 100);
+        });
         
         // ゲーム状態
         let gameState = 'start';
@@ -344,15 +468,15 @@
             let dy = touch.clientY - centerY;
             
             const distance = Math.sqrt(dx * dx + dy * dy);
-            const maxDistance = 40;
+            const maxDistance = rect.width / 2 - 10; // 動的に計算
             
             if (distance > maxDistance) {
                 dx = (dx / distance) * maxDistance;
                 dy = (dy / distance) * maxDistance;
             }
             
-            joystickStick.style.left = (40 + dx) + 'px';
-            joystickStick.style.top = (40 + dy) + 'px';
+            joystickStick.style.left = (rect.width / 2 - 30 + dx) + 'px';
+            joystickStick.style.top = (rect.height / 2 - 30 + dy) + 'px';
             
             joystick.dx = dx / maxDistance;
             joystick.dy = dy / maxDistance;
@@ -366,8 +490,9 @@
             joystick.dx = 0;
             joystick.dy = 0;
             
-            joystickStick.style.left = '40px';
-            joystickStick.style.top = '40px';
+            const rect = joystickBase.getBoundingClientRect();
+            joystickStick.style.left = (rect.width / 2 - 30) + 'px';
+            joystickStick.style.top = (rect.height / 2 - 30) + 'px';
         }
         
         function startGame() {
