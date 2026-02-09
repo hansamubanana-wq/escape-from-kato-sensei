@@ -454,27 +454,36 @@
         const minimapCtx = minimapCanvas.getContext('2d');
         
         // ゲーム内部の論理サイズ
-        const GAME_WIDTH = 800;
-        const GAME_HEIGHT = 600;
+        const GAME_WIDTH = 1600;
+        const GAME_HEIGHT = 1200;
+        
+        // 表示用のキャンバスサイズ（ビューポート）
+        const VIEWPORT_WIDTH = 800;
+        const VIEWPORT_HEIGHT = 600;
+        
+        // カメラ位置
+        let camera = {
+            x: 0,
+            y: 0
+        };
         
         // 画面サイズに合わせて調整
         function resizeCanvas() {
             const isLandscape = window.innerWidth > window.innerHeight;
             
+            canvas.width = VIEWPORT_WIDTH;
+            canvas.height = VIEWPORT_HEIGHT;
+            
             if (isLandscape) {
                 const maxHeight = window.innerHeight * 0.9;
-                const scale = maxHeight / GAME_HEIGHT;
-                canvas.width = GAME_WIDTH;
-                canvas.height = GAME_HEIGHT;
-                canvas.style.width = (GAME_WIDTH * scale) + 'px';
-                canvas.style.height = (GAME_HEIGHT * scale) + 'px';
+                const scale = maxHeight / VIEWPORT_HEIGHT;
+                canvas.style.width = (VIEWPORT_WIDTH * scale) + 'px';
+                canvas.style.height = (VIEWPORT_HEIGHT * scale) + 'px';
             } else {
                 const maxWidth = window.innerWidth * 0.95;
-                const scale = Math.min(maxWidth / GAME_WIDTH, window.innerHeight * 0.7 / GAME_HEIGHT);
-                canvas.width = GAME_WIDTH;
-                canvas.height = GAME_HEIGHT;
-                canvas.style.width = (GAME_WIDTH * scale) + 'px';
-                canvas.style.height = (GAME_HEIGHT * scale) + 'px';
+                const scale = Math.min(maxWidth / VIEWPORT_WIDTH, window.innerHeight * 0.7 / VIEWPORT_HEIGHT);
+                canvas.style.width = (VIEWPORT_WIDTH * scale) + 'px';
+                canvas.style.height = (VIEWPORT_HEIGHT * scale) + 'px';
             }
             
             minimapCanvas.width = 160;
@@ -625,11 +634,44 @@
             {x: 0, y: 0, width: 20, height: GAME_HEIGHT},
             {x: GAME_WIDTH - 20, y: 0, width: 20, height: GAME_HEIGHT},
             {x: 0, y: GAME_HEIGHT - 20, width: GAME_WIDTH, height: 20},
-            {x: 200, y: 150, width: 100, height: 100},
-            {x: 500, y: 150, width: 100, height: 100},
-            {x: 200, y: 400, width: 100, height: 100},
-            {x: 500, y: 400, width: 100, height: 100},
-            {x: 350, y: 280, width: 100, height: 40},
+            // 左上エリア
+            {x: 150, y: 150, width: 200, height: 150},
+            {x: 400, y: 100, width: 150, height: 250},
+            {x: 600, y: 200, width: 100, height: 180},
+            // 中央上エリア
+            {x: 800, y: 50, width: 120, height: 200},
+            {x: 1000, y: 150, width: 180, height: 120},
+            {x: 1250, y: 80, width: 150, height: 220},
+            // 右上エリア
+            {x: 1450, y: 150, width: 100, height: 180},
+            // 左中央エリア
+            {x: 100, y: 400, width: 180, height: 120},
+            {x: 350, y: 450, width: 150, height: 200},
+            {x: 550, y: 380, width: 100, height: 150},
+            // 中央エリア
+            {x: 700, y: 350, width: 120, height: 300},
+            {x: 900, y: 400, width: 200, height: 80},
+            {x: 900, y: 550, width: 80, height: 150},
+            {x: 1050, y: 350, width: 150, height: 120},
+            {x: 1250, y: 400, width: 100, height: 200},
+            // 右中央エリア
+            {x: 1400, y: 450, width: 150, height: 150},
+            // 左下エリア
+            {x: 150, y: 750, width: 180, height: 120},
+            {x: 400, y: 800, width: 120, height: 200},
+            {x: 580, y: 900, width: 150, height: 100},
+            // 中央下エリア
+            {x: 800, y: 750, width: 150, height: 180},
+            {x: 1000, y: 850, width: 120, height: 150},
+            {x: 1200, y: 780, width: 100, height: 200},
+            // 右下エリア
+            {x: 1350, y: 850, width: 180, height: 120},
+            // 小さな障害物
+            {x: 250, y: 550, width: 60, height: 60},
+            {x: 650, y: 650, width: 80, height: 80},
+            {x: 1100, y: 650, width: 70, height: 70},
+            {x: 450, y: 300, width: 50, height: 50},
+            {x: 1300, y: 550, width: 60, height: 60},
         ];
         
         // タスク
@@ -764,7 +806,12 @@
             
             teachers = [];
             for (let i = 0; i < settings.teacherCount; i++) {
-                teachers.push(createTeacher(700 - i * 100, 500 - i * 50));
+                // 新しいマップサイズに合わせて配置（壁に埋まらないように）
+                if (i === 0) {
+                    teachers.push(createTeacher(1400, 1000));
+                } else if (i === 1) {
+                    teachers.push(createTeacher(1400, 200));
+                }
             }
             teachers.forEach(t => t.speed = settings.teacherSpeed);
             
@@ -1007,27 +1054,46 @@
             }
         }
         
+        function updateCamera() {
+            // プレイヤーを中心にカメラを配置
+            camera.x = player.x - VIEWPORT_WIDTH / 2;
+            camera.y = player.y - VIEWPORT_HEIGHT / 2;
+            
+            // カメラがマップ外に出ないように制限
+            camera.x = Math.max(0, Math.min(camera.x, GAME_WIDTH - VIEWPORT_WIDTH));
+            camera.y = Math.max(0, Math.min(camera.y, GAME_HEIGHT - VIEWPORT_HEIGHT));
+        }
+        
         function draw() {
+            // カメラ更新
+            updateCamera();
+            
+            // カメラ変換を保存
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
+            
             // 背景
-            const gradient = ctx.createLinearGradient(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            const gradient = ctx.createLinearGradient(camera.x, camera.y, camera.x + VIEWPORT_WIDTH, camera.y + VIEWPORT_HEIGHT);
             gradient.addColorStop(0, '#2d2d44');
             gradient.addColorStop(1, '#1a1a2e');
             ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            ctx.fillRect(camera.x, camera.y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
             
-            // グリッド
+            // グリッド（表示範囲のみ）
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
             ctx.lineWidth = 1;
-            for (let i = 0; i < GAME_WIDTH; i += 40) {
+            const gridStartX = Math.floor(camera.x / 40) * 40;
+            const gridStartY = Math.floor(camera.y / 40) * 40;
+            for (let i = gridStartX; i < camera.x + VIEWPORT_WIDTH; i += 40) {
                 ctx.beginPath();
-                ctx.moveTo(i, 0);
-                ctx.lineTo(i, GAME_HEIGHT);
+                ctx.moveTo(i, camera.y);
+                ctx.lineTo(i, camera.y + VIEWPORT_HEIGHT);
                 ctx.stroke();
             }
-            for (let i = 0; i < GAME_HEIGHT; i += 40) {
+            for (let i = gridStartY; i < camera.y + VIEWPORT_HEIGHT; i += 40) {
                 ctx.beginPath();
-                ctx.moveTo(0, i);
-                ctx.lineTo(GAME_WIDTH, i);
+                ctx.moveTo(camera.x, i);
+                ctx.lineTo(camera.x + VIEWPORT_WIDTH, i);
                 ctx.stroke();
             }
             
@@ -1143,7 +1209,10 @@
             // 加藤先生
             teachers.forEach(teacher => drawTeacher(teacher));
             
-            // ミニマップ描画
+            // カメラ変換をリセット
+            ctx.restore();
+            
+            // ミニマップ描画（カメラ変換なし）
             drawMinimap();
         }
         
@@ -1292,7 +1361,7 @@
         }
         
         function drawMinimap() {
-            const scale = 0.2;
+            const scale = 0.1; // 1600x1200 → 160x120
             
             minimapCtx.fillStyle = '#1a1a2e';
             minimapCtx.fillRect(0, 0, minimapCanvas.width, minimapCanvas.height);
